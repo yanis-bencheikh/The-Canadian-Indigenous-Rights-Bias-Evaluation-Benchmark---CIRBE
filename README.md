@@ -102,7 +102,7 @@ If you use this benchmark in your research, please cite:
 ```bibtex
 @dataset{cirbe2025,
   title={CIRBE: Canadian Indigenous Rights Bias Evaluation Benchmark},
-  author={[Author Name]},
+  author={[Yanis Bencheikh]},
   year={2025},
   note={Benchmark for detecting biases against Indigenous peoples in Canadian NLP models}
 }
