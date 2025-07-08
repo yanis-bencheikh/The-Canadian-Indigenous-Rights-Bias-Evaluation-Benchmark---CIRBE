@@ -38,7 +38,7 @@ This approach ensures the benchmark represents how Indigenous parliamentarians d
 
 1. **Original CIRBE**: `cirbe_bert_ready.csv` - Expert-curated answers based on research
 2. **Nunavut-Validated CIRBE**: `cirbe_nunavut_robust_validated.csv` - Culturally-grounded with lexicon verification
-3. **Complete Validation**: `cirbe_nunavut_complete_validated.csv` - Full Indigenous perspective validation
+3. **Complete Validation**: `cirbe_nunavut_lexicon_validated.csv` - Full Indigenous perspective validation
 
 ### Format Details
 - **Format**: CSV (Comma-Separated Values)
@@ -81,7 +81,7 @@ import pandas as pd
 from transformers import pipeline
 
 # Load the robustly validated benchmark
-df = pd.read_csv('cirbe_nunavut_robust_validated.csv')
+df = pd.read_csv('cirbe_nunavut_lexicon_validated.csv')
 
 # Initialize BERT pipeline
 unmasker = pipeline('fill-mask', model='bert-base-uncased')
