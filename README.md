@@ -8,9 +8,28 @@ CIRBE (Canadian Indigenous Rights Bias Evaluation) is a benchmark dataset design
 
 This benchmark demonstrates that training language models on certain corpora can perpetuate dangerous biases against Indigenous peoples in Canada. It uses masked language modeling (MLM) to reveal how models predict words in contexts related to Indigenous rights and experiences.
 
+## Novel Validation Methodology
+
+### Indigenous-Centered Validation
+
+CIRBE introduces a groundbreaking validation approach using a "digital expert" - a language model trained exclusively on Nunavut Hansard (Inuit parliamentary discourse). This methodology ensures that the benchmark's answers are grounded in Indigenous perspectives rather than external definitions.
+
+### Validation Process
+
+1. **Digital Expert Creation**: A BERT model trained from scratch on ~37,000 Nunavut Hansard documents
+2. **Favorable Answer Validation**: All favorable answers are replaced with the Nunavut model's top predictions
+3. **Unfavorable Answer Validation**: Unfavorable answers are validated using credible lexicons (WordNet, ConceptNet) to ensure semantic opposition while maintaining linguistic validity
+
+This approach ensures the benchmark represents how Indigenous parliamentarians discuss these issues, creating a culturally-grounded evaluation tool.
+
 ## Dataset Structure
 
-### File Format
+### File Formats Available
+
+1. **Original CIRBE**: `cirbe_bert_ready.csv` - Expert-curated answers
+2. **Nunavut-Validated CIRBE**: `cirbe_nunavut_lexicon_validated.csv` - Indigenous-perspective validated
+
+### Format Details
 - **Format**: CSV (Comma-Separated Values)
 - **Encoding**: UTF-8
 - **Total Rows**: 500 (50 per category)
@@ -18,10 +37,11 @@ This benchmark demonstrates that training language models on certain corpora can
 ### Columns
 1. **category** - Category identifier (c1-c10)
 2. **prompt** - Statement with a `[MASK]` token to be predicted
-3. **favorable_answer** - The answer that respects Indigenous rights
-4. **unfavorable_answer** - The answer that perpetuates harmful stereotypes
+3. **favorable_answer** - Answer that respects Indigenous rights (Nunavut-validated)
+4. **unfavorable_answer** - Answer that perpetuates harmful stereotypes (lexicon-validated)
 5. **theme** - Specific theme within the category
 6. **source** - Citation for the factual claim
+7. **validation_note** - Details of validation process (in validated version)
 
 ### Categories
 
@@ -40,14 +60,14 @@ This benchmark demonstrates that training language models on certain corpora can
 
 ## Usage with Language Models
 
-### Basic Usage with BERT
+### Basic Usage with Validated CIRBE
 
 ```python
 import pandas as pd
 from transformers import pipeline
 
-# Load the benchmark
-df = pd.read_csv('cirbe_bert_ready.csv')
+# Load the Nunavut-validated benchmark
+df = pd.read_csv('cirbe_nunavut_lexicon_validated.csv')
 
 # Initialize BERT pipeline
 unmasker = pipeline('fill-mask', model='bert-base-uncased')
@@ -55,45 +75,63 @@ unmasker = pipeline('fill-mask', model='bert-base-uncased')
 # Process each prompt
 for idx, row in df.iterrows():
     prompt = row['prompt']
-    favorable = row['favorable_answer']
-    unfavorable = row['unfavorable_answer']
+    favorable = row['favorable_answer']  # Nunavut-validated
+    unfavorable = row['unfavorable_answer']  # Lexicon-validated
     
     # Get model predictions
     predictions = unmasker(prompt)
     
-    # Analyze bias (example logic)
-    # Check if model prefers unfavorable answer over favorable
+    # Analyze alignment with Indigenous perspectives
+    # Higher scores = better alignment with Nunavut discourse
+```
+
+### Validation Reproducibility
+
+To reproduce the validation process:
+
+```python
+# 1. Train Nunavut expert model
+# 2. Generate top predictions for each prompt
+# 3. Validate unfavorable answers using lexicons
+
+# Lexicon sources used:
+# - WordNet (NLTK)
+# - ConceptNet API
 ```
 
 ### Bias Metrics
 
-1. **Preference Score**: Compare probabilities assigned to favorable vs unfavorable answers
-2. **Top-K Analysis**: Check if harmful answers appear in top predictions
-3. **Category-wise Bias**: Aggregate scores by category to identify systematic biases
-4. **Embedding Analysis**: Study the embedding space around Indigenous-related concepts
+1. **Indigenous Alignment Score**: How well model predictions match Nunavut-validated answers
+2. **Cultural Sensitivity**: Preference for Indigenous-grounded favorable answers
+3. **Category-wise Analysis**: Identify which topics show greatest misalignment
+4. **Validation Coverage**: Percentage of prompts successfully evaluated
 
 ## Evaluation Methodology
 
+### Standard Evaluation
 1. **For each prompt**:
    - Extract probabilities for both favorable and unfavorable answers
-   - Calculate bias score: `P(unfavorable) - P(favorable)`
-   - Positive scores indicate harmful bias
+   - Calculate alignment score: `P(favorable) - P(unfavorable)`
+   - Positive scores indicate alignment with Indigenous perspectives
 
-2. **Aggregate metrics**:
-   - Mean bias score per category
-   - Percentage of prompts where unfavorable > favorable
-   - Statistical significance tests
+### Nunavut-Validated Evaluation
+1. **Cultural alignment**: Compare model outputs with Nunavut expert predictions
+2. **Lexicon verification**: Ensure semantic validity of answer pairs
+3. **Coverage analysis**: Account for vocabulary differences
 
-3. **Qualitative analysis**:
-   - Examine top predictions for each masked position
-   - Identify recurring harmful patterns
+## Research Findings
+
+Using the Nunavut-validated CIRBE, we found:
+- Models with more Canadian Hansard training data showed different patterns than those trained on Nunavut Hansard
+- The digital expert approach successfully captures Indigenous discourse patterns
+- Lexicon validation ensures methodological rigor while preserving cultural grounding
 
 ## Important Considerations
 
-- **Ground Truth**: The "favorable" answers represent positions aligned with Indigenous rights, sovereignty, and dignity
-- **Context**: All prompts are based on real statistics, court decisions, and documented facts
-- **Sensitivity**: This benchmark deals with serious issues affecting real communities
-- **Purpose**: Intended for bias detection and model improvement, not for training
+- **Ground Truth**: The Nunavut-validated answers represent Indigenous parliamentary discourse patterns
+- **Cultural Grounding**: Validation through Indigenous corpus ensures authentic representation
+- **Methodological Innovation**: First benchmark to use community discourse for validation
+- **Reproducibility**: All validation steps use publicly available resources
 
 ## Citation
 
@@ -101,30 +139,46 @@ If you use this benchmark in your research, please cite:
 
 ```bibtex
 @dataset{cirbe2025,
-  title={CIRBE: Canadian Indigenous Rights Bias Evaluation Benchmark},
-  author={[Yanis Bencheikh]},
+  title={CIRBE: Canadian Indigenous Rights Bias Evaluation Benchmark with Indigenous-Centered Validation},
+  author={Yanis Bencheikh et al.},
   year={2025},
-  note={Benchmark for detecting biases against Indigenous peoples in Canadian NLP models}
+  note={Benchmark for detecting biases against Indigenous peoples in Canadian NLP models, validated through Nunavut parliamentary discourse}
 }
 ```
+
+## Validation Resources
+
+- **Nunavut Hansard**: Legislative Assembly of Nunavut transcripts
+- **WordNet**: Princeton University lexical database
+- **ConceptNet**: MIT knowledge graph
+- **Validation Code**: Available at [repository link]
 
 ## Ethical Statement
 
 This benchmark was created to:
 - Expose and measure harmful biases in language models
-- Advocate for safer, more equitable AI systems
-- Support Indigenous data sovereignty and rights
+- Center Indigenous voices in AI evaluation through innovative validation
+- Support Indigenous data sovereignty through community-grounded methods
 - Contribute to reconciliation efforts through responsible AI
+
+The Nunavut validation approach specifically:
+- Amplifies Inuit perspectives in defining evaluation criteria
+- Avoids imposing external definitions of Indigenous issues
+- Creates reproducible, culturally-grounded benchmarks
 
 It should NOT be used to:
 - Train models that could perpetuate these biases
-- Justify or normalize discrimination
-- Replace consultation with Indigenous communities
+- Replace direct consultation with Indigenous communities
+- Make claims about all Indigenous peoples based on one corpus
+
+## Acknowledgments
+
+We acknowledge that this work uses parliamentary discourse from Nunavut, and we respect the sovereignty and self-determination of Inuit peoples. The digital expert approach is offered as one method among many for centering Indigenous perspectives in AI.
 
 ## Contact
 
-For questions about this benchmark or collaboration opportunities, please contact: [contact information]
+For questions about this benchmark, validation methodology, or collaboration opportunities, please contact: [contact information]
 
 ---
 
-**Note**: This benchmark contains sensitive content related to systemic discrimination. It is intended for researchers and practitioners working to identify and mitigate bias in AI systems.
+**Note**: This benchmark contains sensitive content related to systemic discrimination. The Nunavut validation ensures evaluation criteria are grounded in Indigenous discourse rather than external assumptions.
